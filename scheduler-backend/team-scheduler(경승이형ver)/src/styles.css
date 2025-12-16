@@ -1,0 +1,427 @@
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0d12;
+  color: #e7e9ee;
+
+  /* ✅ 페이지 전체를 중앙 기준으로 */
+  display: grid;
+  place-items: center;
+}
+
+/* ✅ 카드(전체 컨테이너)를 정확히 가운데에 두기 */
+.page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* ✅ 실제 내용 폭을 고정(웹 전용) */
+.card {
+  width: 860px;              /* 웹 고정 폭 */
+  background: #121826;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+}
+
+/* 헤더 */
+h1 { margin: 0 0 8px; font-size: 28px; }
+.muted { color: #a9b2c5; font-size: 13px; }
+.header { margin-bottom: 10px; }
+
+.label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  color: #c9d2e6;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;    /* ✅ 폭 계산 안정화 */
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #263554;
+  background: #0f1422;
+  color: #e7e9ee;
+  outline: none;
+}
+
+.input:focus { border-color: #3a5aa7; }
+
+.hr {
+  border: none;
+  border-top: 1px solid #1f2a44;
+  margin: 16px 0;
+}
+
+.btn {
+  border: 1px solid #2b3b60;
+  background: #151d2f;
+  color: #e7e9ee;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.btn:hover { background: #18223a; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { border-color: #4c7dff; box-shadow: 0 0 0 1px rgba(76,125,255,.25) inset; }
+
+.btn.full {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* 2칸 분할(웹 고정) */
+.split {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.pane {
+  background: #0f1422;
+  border: 1px solid #263554;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.paneTitle {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.muted.small { font-size: 12px; }
+
+.hint {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+.room {
+  width: 100%;
+  max-width: 1200px;
+
+  height: 100vh;          /* ✅ calc 제거 */
+  padding: 10px;          /* 필요하면 */
+  box-sizing: border-box; /* ✅ padding 포함해서 100vh 안에 */
+  display: flex;
+  flex-direction: column;
+}
+
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  background: #0e1320;
+  margin-bottom: 6px;
+  flex: 0 0 auto;
+}
+
+.topLeft, .topRight { display: flex; align-items: center; gap: 10px; }
+.code { padding: 4px 8px; border-radius: 10px; background: #0f1422; border: 1px solid #263554; }
+
+.layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 10px;
+}
+
+.main {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.gridWrap {
+  flex: 1;        /* ✅ 남은 높이를 전부 */
+  min-height: 0;
+  overflow: hidden; /* 한 화면에 다 넣을 거니까 */
+}
+
+.panel {
+  background: #121826;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  padding: 14px;
+}
+.panelTitle { font-weight: 800; margin-bottom: 10px; }
+
+.memberList { display: flex; flex-direction: column; gap: 8px; }
+.memberItem {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #263554;
+  background: #0f1422;
+  color: #e7e9ee;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.memberItem.active { border-color: #4c7dff; }
+.dot { width: 8px; height: 8px; border-radius: 999px; background: #4c7dff; }
+.badge { margin-left: auto; font-size: 11px; padding: 2px 8px; border-radius: 999px; border: 1px solid #2b3b60; color: #c9d2e6; }
+
+.recList { display: flex; flex-direction: column; gap: 8px; }
+.recItem {
+  text-align: left;
+  border: 1px solid #263554;
+  background: #0f1422;
+  color: #e7e9ee;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.gridWrap {
+  background: #121826;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  padding: 10px;
+  overflow: auto;
+}
+
+/* 가로=요일(5), 세로=시간(26) */
+.grid2 {
+  display: grid;
+  grid-template-columns: 90px repeat(5, 110px); /* 왼쪽 시간열 + 5일 */
+  gap: 6px;
+  align-items: center;
+}
+
+.dayTopHeader {
+  font-weight: 800;
+  color: #c9d2e6;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+
+.timeRow {
+  display: contents; /* 한 행을 grid로 펼치기 */
+}
+
+.timeSideHeader {
+  font-size: 12px;
+  color: #a9b2c5;
+  height: 42px;
+  display: grid;
+  place-items: center;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;   /* ✅ 페이지 스크롤 제거 */
+}
+
+.room {
+  width: 100%;
+  max-width: 1200px;
+  height: calc(100vh - 24px); /* ✅ 한 화면에 맞추기 */
+  display: flex;
+  flex-direction: column;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* ✅ 왼쪽 폭 줄임 */
+  gap: 12px;
+  flex: 1;              /* ✅ 남은 높이 전부 사용 */
+  min-height: 0;        /* ✅ 내부 스크롤 동작 필수 */
+}
+
+.sidebar, .main {
+  min-height: 0;        /* ✅ 내부 스크롤 동작 필수 */
+}
+
+.panel {
+  background: #121826;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.panelTitle {
+  font-weight: 800;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.memberItem, .recItem {
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+/* ✅ 왼쪽 패널이 내용 때문에 길어지지 않도록 */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 팀원 리스트는 내부만 스크롤 */
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;  /* ✅ 줄이기 */
+  overflow: auto;
+}
+
+/* 추천 리스트도 내부만 스크롤 */
+.recList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;  /* ✅ 줄이기 */
+  overflow: auto;
+}
+
+.gridWrap {
+  background: #121826;
+  border: 1px solid #1f2a44;
+  border-radius: 16px;
+  padding: 10px;
+
+  flex: 1;          /* ✅ 남은 높이 사용 */
+  min-height: 0;    /* ✅ 내부 스크롤 필수 */
+  overflow: auto;   /* ✅ 시간표 내부 스크롤 */
+}
+
+/* 가로=요일(5), 세로=시간(26) */
+.grid2 {
+  display: grid;
+  grid-template-columns: 76px repeat(5, 96px); /* ✅ 더 컴팩트 */
+  gap: 6px;
+  align-items: center;
+}
+
+/* 헤더/셀 높이 줄이기 */
+.dayTopHeader {
+  height: 22px;
+  font-size: 13px;
+}
+
+.timeSideHeader {
+  height: 26px;
+  font-size: 11px;
+}
+
+.cell {
+  height: 26px;          /* ✅ 42 → 26 */
+  border-radius: 8px;
+}
+
+
+.cell {
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid #263554;
+  background: #0f1422;
+}
+
+.cell.on {
+  background: rgba(76,125,255,.45);     /* 더 진하게 */
+  border-color: rgba(76,125,255,.9);
+}
+
+.cell.off {
+  background: rgba(255,255,255,.03);
+  border-color: #263554;
+}
+
+/* 상단바 높이 줄이기 */
+.topbar {
+  padding: 6px 10px;
+  margin-bottom: 8px;
+}
+
+/* 버튼 더 작게 */
+.btn.small {
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 코드 배지 작게 */
+.code {
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+/* 시간표 박스 안에서 전체가 보이게: 스크롤 없애고(잘림 방지) */
+.gridWrap {
+  padding: 8px;
+  overflow: hidden;     /* ✅ 내부 스크롤도 없애서 '잘린 것처럼 보이는' 상황 방지 */
+}
+
+/* 시간표 grid 자체를 더 촘촘하게 */
+.grid2 {
+  grid-template-columns: 64px repeat(5, 84px); /* 좌측 시간열 + 요일 5열 더 좁게 */
+  gap: 3px;                                    /* ✅ gap 줄이기 */
+}
+
+/* 헤더/시간/셀 높이 줄이기 */
+.dayTopHeader {
+  height: 18px;
+  font-size: 12px;
+}
+
+.timeSideHeader {
+  height: 18px;        /* ✅ 26행 * 18px = 468px (gap 포함해도 여유 생김) */
+  font-size: 10px;
+}
+
+.cell {
+  height: 18px;        /* ✅ 가장 중요 */
+  border-radius: 6px;
+}
+
+.panel {
+  padding: 10px;
+}
+
+.panelTitle {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.memberList {
+  max-height: 160px;  /* 더 줄이기 */
+}
+
+.recList {
+  max-height: 200px;  /* 더 줄이기 */
+}
+
+.memberItem, .recItem {
+  padding: 6px 8px;
+  font-size: 12px;
+}
