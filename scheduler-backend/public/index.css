@@ -101,3 +101,7 @@ td div{
   width:100%;
   margin:8px 0 16px;
 }
+.empty-slot {
+  background: #e8f5e9;
+  border: 2px dashed #4caf50;
+}

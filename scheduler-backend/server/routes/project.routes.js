@@ -15,12 +15,12 @@ const {
   isProjectFull
 } = require("../utils/projectUtils");
 
-/* 헬스 체크 */
+/* ================= 헬스 체크 ================= */
 router.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
-/* 프로젝트 생성 */
+/* ================= 프로젝트 생성 ================= */
 router.post("/project/create", (req, res) => {
   const projectId = getNextProjectId();
   const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -34,12 +34,13 @@ router.post("/project/create", (req, res) => {
   });
 });
 
-/* 링크 참가 */
+/* ================= 링크 참가 ================= */
 router.post("/project/:projectId/join/link", (req, res) => {
   const projectId = Number(req.params.projectId);
   const { nickname } = req.body;
 
-  if (!findProjectById(projectId)) {
+  const project = findProjectById(projectId);
+  if (!project) {
     return res.status(404).json({ error: "project not found" });
   }
 
@@ -57,11 +58,11 @@ router.post("/project/:projectId/join/link", (req, res) => {
   res.json(member);
 });
 
-/* 코드 참가 */
+/* ================= 코드 참가 ================= */
 router.post("/project/join/code", (req, res) => {
   const { joinCode, nickname } = req.body;
-  const project = findProjectByCode(joinCode);
 
+  const project = findProjectByCode(joinCode);
   if (!project) {
     return res.status(403).json({ error: "invalid code" });
   }
@@ -80,10 +81,39 @@ router.post("/project/join/code", (req, res) => {
   res.json(member);
 });
 
-/* 시간표 조회 */
+/* ================= 전체 시간표 조회 ================= */
 router.get("/project/:projectId/timetable", (req, res) => {
   const projectId = Number(req.params.projectId);
   res.json(timetables.filter(t => t.projectId === projectId));
+});
+
+/* ================= 빈 시간표 조회 (추가 기능) ================= */
+router.get("/project/:projectId/empty-slots", (req, res) => {
+  const projectId = Number(req.params.projectId);
+
+  // ✅ 프론트 / socket 기준과 통일
+  const DAYS = [0, 1, 2, 3, 4];          // 월~금
+  const SLOTS = Array.from({ length: 26 }, (_, i) => i); // 09:00~21:30
+
+  const result = [];
+
+  for (const day of DAYS) {
+    for (const slot of SLOTS) {
+      const cell = timetables.find(
+        t =>
+          t.projectId === projectId &&
+          t.day === day &&
+          t.slot === slot
+      );
+
+      // ✅ 아무도 선택 안 한 슬롯만
+      if (!cell || cell.members.length === 0) {
+        result.push({ day, slot });
+      }
+    }
+  }
+
+  res.json(result);
 });
 
 module.exports = router;

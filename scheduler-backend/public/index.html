@@ -6,7 +6,6 @@
   <link rel="stylesheet" href="/index.css">
 </head>
 
-
 <body>
 
 <!-- 아이디 입력 -->
@@ -35,6 +34,7 @@
   <h2>프로젝트 시간표</h2>
   <div class="center">
     <button class="secondary" onclick="openShare()">공유하기</button>
+    <button class="primary" onclick="showAllTimetable()">시간표 보기</button>
   </div>
   <table id="timetable"></table>
 </div>
@@ -54,6 +54,7 @@
     <button class="secondary" onclick="closeShare()">닫기</button>
   </div>
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/state.js"></script>
 <script src="/js/api.js"></script>
@@ -61,4 +62,4 @@
 <script src="/js/ui.js"></script>
 
 </body>
-</html> 
+</html>

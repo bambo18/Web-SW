@@ -1,12 +1,14 @@
-// 전역 상태 관리
-
+// 전역 상태 관리 (기존 방식 유지)
 let projectId = null;
 let memberId  = null;
 
 let joinCode   = null;
 let inviteLink = null;
 
-// 색상 관련
+let nickname = ""; // ✅ 추가: 입장 시 저장해두기
+let showingEmpty = false; // ✅ 빈 시간표 표시 중인지 여부
+
+// 색상 관련 (기존 유지)
 const palette = [
   "#c7d2fe",
   "#bbf7d0",
@@ -20,9 +22,7 @@ const colorMap = {};
 
 function colorOf(name){
   if(!colorMap[name]){
-    colorMap[name] =
-      palette[Object.keys(colorMap).length % palette.length];
+    colorMap[name] = palette[Object.keys(colorMap).length % palette.length];
   }
   return colorMap[name];
 }
-const socket = io();
