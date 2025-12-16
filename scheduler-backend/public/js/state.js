@@ -25,3 +25,4 @@ function colorOf(name){
   }
   return colorMap[name];
 }
+const socket = io();

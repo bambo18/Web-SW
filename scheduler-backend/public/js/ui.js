@@ -89,7 +89,8 @@ function showTable(){
   drawTable();
   loadTimetable();
 
-  setInterval(loadTimetable, 3000);
+  socket.emit("join-project", projectId);
+
 }
 
 // ----------------

@@ -1,6 +1,8 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 const PORT = 4000;
@@ -73,46 +75,59 @@ app.post("/project/join/code", (req, res) => {
   };
   members.push(member);
 
-  res.json({
-    ...member,
-    projectId: project.projectId
-  });
+  res.json(member);
 });
 
-/* ================= 시간표 토글 ================= */
-app.post("/timetable/update", (req, res) => {
-  const { projectId, memberId, nickname, day, slot } = req.body;
-
-  let cell = timetables.find(
-    t => t.projectId === projectId && t.day === day && t.slot === slot
-  );
-
-  if (!cell) {
-    cell = { projectId, day, slot, members: [] };
-    timetables.push(cell);
-  }
-
-  const exists = cell.members.find(m => m.memberId === memberId);
-
-  if (exists) {
-    cell.members = cell.members.filter(m => m.memberId !== memberId);
-  } else {
-    if (cell.members.length >= 6) {
-      return res.status(403).json({ error: "slot full" });
-    }
-    cell.members.push({ memberId, nickname });
-  }
-
-  res.json({ members: cell.members });
-});
-
-/* ================= 전체 시간표 ================= */
+/* ================= 전체 시간표 조회 (초기 로딩용) ================= */
 app.get("/project/:projectId/timetable", (req, res) => {
   const projectId = Number(req.params.projectId);
   const result = timetables.filter(t => t.projectId === projectId);
   res.json(result);
 });
 
-app.listen(PORT, () => {
+/* ================= socket.io ================= */
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+io.on("connection", (socket) => {
+  console.log("🔌 socket connected", socket.id);
+
+  socket.on("join-project", (projectId) => {
+    socket.join(`project-${projectId}`);
+  });
+
+  socket.on("toggle-slot", (data) => {
+    const { projectId, memberId, nickname, day, slot } = data;
+
+    let cell = timetables.find(
+      t => t.projectId === projectId && t.day === day && t.slot === slot
+    );
+
+    if (!cell) {
+      cell = { projectId, day, slot, members: [] };
+      timetables.push(cell);
+    }
+
+    const exists = cell.members.find(m => m.memberId === memberId);
+
+    if (exists) {
+      cell.members = cell.members.filter(m => m.memberId !== memberId);
+    } else {
+      if (cell.members.length >= 6) return;
+      cell.members.push({ memberId, nickname });
+    }
+
+    io.to(`project-${projectId}`).emit("timetable-update", cell);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ socket disconnected", socket.id);
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`✅ Server running http://localhost:${PORT}`);
 });
