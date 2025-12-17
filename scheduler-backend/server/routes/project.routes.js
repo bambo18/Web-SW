@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
 
+const store = require("../store");
 const {
   projects,
   members,
   timetables,
   getNextProjectId,
-  getNextMemberId
-} = require("../store/memoryStore");
+  getNextMemberId,
+  init: storeInit
+} = store;
 
 const {
   findProjectById,
@@ -22,16 +24,31 @@ router.get("/health", (req, res) => {
 
 /* ================= 프로젝트 생성 ================= */
 router.post("/project/create", (req, res) => {
-  const projectId = getNextProjectId();
-  const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  // When using mysql store, getNextProjectId is async (reserves id). Support promise or sync.
+  const maybe = getNextProjectId();
 
-  projects.push({ projectId, joinCode });
+  const finalize = (projectId) => {
+    const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  res.json({
-    projectId,
-    joinCode,
-    inviteLink: `http://localhost:4000/?project=${projectId}`
-  });
+    const item = { projectId, joinCode };
+    if (typeof store.createProject === 'function') {
+      // async persistence
+      store.createProject(item).then(() => {
+        res.json({ projectId, joinCode, inviteLink: `http://localhost:4000/?project=${projectId}` });
+      }).catch(err => res.status(500).json({ error: err.message }));
+      return;
+    }
+
+    projects.push(item);
+    res.json({ projectId, joinCode, inviteLink: `http://localhost:4000/?project=${projectId}` });
+  };
+
+  if (maybe && typeof maybe.then === 'function') {
+    maybe.then(id => finalize(id)).catch(err => res.status(500).json({ error: err.message }));
+    return;
+  }
+  const projectId = maybe;
+  finalize(projectId);
 });
 
 /* ================= 링크 참가 ================= */
@@ -44,18 +61,39 @@ router.post("/project/:projectId/join/link", (req, res) => {
     return res.status(404).json({ error: "project not found" });
   }
 
+  // isProjectFull uses members array; if using mysql store, ensure store init was run.
+  if (typeof storeInit === 'function' && storeInit.__initialized !== true) {
+    // best-effort init (store.init may be async)
+    const maybeInit = storeInit();
+    if (maybeInit && typeof maybeInit.then === 'function') maybeInit.catch(() => {});
+    storeInit.__initialized = true;
+  }
+
   if (isProjectFull(projectId)) {
     return res.status(403).json({ error: "project full" });
   }
 
-  const member = {
-    memberId: getNextMemberId(),
-    projectId,
-    nickname
-  };
-  members.push(member);
+  const maybeMemberId = getNextMemberId();
 
-  res.json(member);
+  const finalizeJoin = (memberId) => {
+    const member = {
+      memberId,
+      projectId,
+      nickname
+    };
+    if (typeof store.createMember === 'function') {
+      store.createMember(member).then(() => res.json(member)).catch(err => res.status(500).json({ error: err.message }));
+      return;
+    }
+    members.push(member);
+    res.json(member);
+  };
+
+  if (maybeMemberId && typeof maybeMemberId.then === 'function') {
+    maybeMemberId.then(id => finalizeJoin(id)).catch(err => res.status(500).json({ error: err.message }));
+    return;
+  }
+  finalizeJoin(maybeMemberId);
 });
 
 /* ================= 코드 참가 ================= */
@@ -71,14 +109,26 @@ router.post("/project/join/code", (req, res) => {
     return res.status(403).json({ error: "project full" });
   }
 
-  const member = {
-    memberId: getNextMemberId(),
-    projectId: project.projectId,
-    nickname
+  const maybeMemberId = getNextMemberId();
+  const finalizeJoin = (memberId) => {
+    const member = {
+      memberId,
+      projectId: project.projectId,
+      nickname
+    };
+    if (typeof store.createMember === 'function') {
+      store.createMember(member).then(() => res.json(member)).catch(err => res.status(500).json({ error: err.message }));
+      return;
+    }
+    members.push(member);
+    res.json(member);
   };
-  members.push(member);
 
-  res.json(member);
+  if (maybeMemberId && typeof maybeMemberId.then === 'function') {
+    maybeMemberId.then(id => finalizeJoin(id)).catch(err => res.status(500).json({ error: err.message }));
+    return;
+  }
+  finalizeJoin(maybeMemberId);
 });
 
 /* ================= 전체 시간표 조회 ================= */

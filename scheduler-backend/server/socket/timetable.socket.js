@@ -1,4 +1,5 @@
-const { timetables } = require("../store/memoryStore");
+const store = require("../store");
+const { timetables, init: storeInit, updateCellMembers } = store;
 const { getOrCreateCell } = require("../utils/projectUtils");
 
 module.exports = function timetableSocket(io, socket) {
@@ -18,15 +19,32 @@ module.exports = function timetableSocket(io, socket) {
   socket.on("toggle-slot", (data) => {
     const { projectId, memberId, nickname, day, slot } = data;
 
+    // Ensure store is initialized (async for mysql)
+    if (typeof storeInit === 'function' && storeInit.__initialized !== true) {
+      const maybeInit = storeInit();
+      if (maybeInit && typeof maybeInit.then === 'function') maybeInit.catch(() => {});
+      storeInit.__initialized = true;
+    }
+
     const cell = getOrCreateCell(projectId, day, slot);
 
     const exists = cell.members.find(m => m.memberId === memberId);
 
     if (exists) {
-      cell.members = cell.members.filter(m => m.memberId !== memberId);
+      const next = cell.members.filter(m => m.memberId !== memberId);
+      if (typeof updateCellMembers === 'function') {
+        updateCellMembers(cell, next).then(() => io.to(`project-${projectId}`).emit("timetable-update", cell)).catch(()=>{});
+        return;
+      }
+      cell.members = next;
     } else {
       if (cell.members.length >= 6) return;
-      cell.members.push({ memberId, nickname });
+      const next = [...cell.members, { memberId, nickname }];
+      if (typeof updateCellMembers === 'function') {
+        updateCellMembers(cell, next).then(() => io.to(`project-${projectId}`).emit("timetable-update", cell)).catch(()=>{});
+        return;
+      }
+      cell.members = next; // in-memory
     }
 
     io.to(`project-${projectId}`).emit("timetable-update", cell);
@@ -38,8 +56,13 @@ module.exports = function timetableSocket(io, socket) {
 
     for (const cell of timetables) {
       if (cell.projectId !== projectId) continue;
-      cell.members = cell.members.filter(m => m.memberId !== memberId);
-      io.to(`project-${projectId}`).emit("timetable-update", cell);
+      const next = cell.members.filter(m => m.memberId !== memberId);
+      if (typeof updateCellMembers === 'function') {
+        updateCellMembers(cell, next).then(() => io.to(`project-${projectId}`).emit("timetable-update", cell)).catch(()=>{});
+      } else {
+        cell.members = next;
+        io.to(`project-${projectId}`).emit("timetable-update", cell);
+      }
     }
 
     console.log(`❌ member ${memberId} auto-removed`);
