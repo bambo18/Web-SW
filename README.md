@@ -1,8 +1,8 @@
 # Web-SW — 실행 가이드
 
 이 문서는 로컬에서 이 리포지터리를 실행하고 시연하기 위한 최소한의 설치·실행 절차를 정리합니다.
-
-필수 전제
+실행전 server/db/mysql.js 파일에서 DB_PASS(코드블럭 8번째)의 값을 사용자의 mysql비밀번호로 바꾸세요. 실행방법은  $env:DB="mysql"node server/server.js 입니다
+\필수 전제
 - Node.js + npm
 - 로컬 MySQL 서버(또는 접근 가능한 MySQL 인스턴스)
 - Windows + PowerShell(다른 셸도 가능하지만 본 문서는 PowerShell 예시 사용)
