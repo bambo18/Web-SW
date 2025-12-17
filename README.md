@@ -70,12 +70,6 @@ cd C:\Users\vygud\Documents\GitHub\Web-SW\scheduler-backend\team-scheduler(경�
 npm run dev
 ```
 
-간단 검증
-- 헬스 체크:
-```powershell
-curl http://localhost:4000/health
-# => {"ok":true}
-```
 
 테스트 스크립트
 - 간단 스모크 테스트:
@@ -83,28 +77,10 @@ curl http://localhost:4000/health
 cd C:\Users\vygud\Documents\GitHub\Web-SW
 node test/mysqlStore.spec.js
 ```
-
-Socket.IO 간단 테스트
-1. `scheduler-backend`에서 `socket.io-client` 설치(필요 시):
-```powershell
-cd scheduler-backend
-npm install socket.io-client
-```
-2. `socket-test.js` 작성 후 실행(예시):
-```javascript
-// socket-test.js
-const { io } = require('socket.io-client');
-const socket = io('http://localhost:4000');
-socket.on('connect', () => {
-  const projectId = 1; const memberId = 1;
-  socket.emit('join-project', { projectId, memberId });
-  socket.emit('toggle-slot', { projectId, memberId, nickname: 'tester', day: 0, slot: 0 });
-  setTimeout(()=> socket.disconnect(), 500);
-});
-```
-```powershell
-node socket-test.js
-```
+sql문 예시
+mysql -u ws -p -h 127.0.0.1 scheduler -e "SELECT * FROM timetable_cells LIMIT 50;"
+mysql -u ws -p -h 127.0.0.1 scheduler -e "SELECT * FROM projects ORDER BY projectId DESC LIMIT 5;"
+mysql -u ws -p -h 127.0.0.1 scheduler -e "SELECT * FROM members ORDER BY memberId DESC LIMIT 10;"
 
 주의 및 문제해결
 - `mysql` 명령을 찾을 수 없음: MySQL cli가 PATH에 없거나 설치되지 않음. `Get-Command mysql` 또는 `where.exe mysql`로 확인.
@@ -121,8 +97,3 @@ node socket-test.js
 
 추가 도움
 - 데모 자동화 스크립트나 프레젠테이션용 간단 슬라이드가 필요하면 알려주세요.
-# db 연결법
-# Node.js + npm
-# MySQL 서버(로컬) — 계정/권한을 만들 수 있어야 함
-# PowerShell 사용
-#
