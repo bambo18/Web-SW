@@ -183,6 +183,8 @@ const timetablesProxy = makeArrayProxy(timetables);
 
 // Explicit async creators for mysql mode. These replace direct push() usage.
 async function createProject(item) {
+  console.log("🧱 mysqlStore.createProject", item);
+
   const created = await onProjectPush(item);
   projects.push(created);
   return created;

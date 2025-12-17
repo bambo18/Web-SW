@@ -23,32 +23,44 @@ router.get("/health", (req, res) => {
 });
 
 /* ================= 프로젝트 생성 ================= */
-router.post("/project/create", (req, res) => {
-  // When using mysql store, getNextProjectId is async (reserves id). Support promise or sync.
-  const maybe = getNextProjectId();
+router.post("/project/create", async (req, res) => {
+  console.log("🔥 /project/create API CALLED");
 
-  const finalize = (projectId) => {
+  try {
+    // mysqlStore: getNextProjectId 는 async
+    const projectId = await getNextProjectId();
     const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    const item = { projectId, joinCode };
-    if (typeof store.createProject === 'function') {
-      // async persistence
-      store.createProject(item).then(() => {
-        res.json({ projectId, joinCode, inviteLink: `http://localhost:4000/?project=${projectId}` });
-      }).catch(err => res.status(500).json({ error: err.message }));
-      return;
+    const project = { projectId, joinCode };
+
+    // 프로젝트 저장
+    if (typeof store.createProject === "function") {
+      await store.createProject(project);
+    } else {
+      projects.push(project);
     }
 
-    projects.push(item);
-    res.json({ projectId, joinCode, inviteLink: `http://localhost:4000/?project=${projectId}` });
-  };
+    // 🔥 생성자는 자동 참가
+    const memberId = await getNextMemberId();
+    const nickname = req.body.nickname || "HOST";
 
-  if (maybe && typeof maybe.then === 'function') {
-    maybe.then(id => finalize(id)).catch(err => res.status(500).json({ error: err.message }));
-    return;
+    const member = { memberId, projectId, nickname };
+
+    if (typeof store.createMember === "function") {
+      await store.createMember(member);
+    } else {
+      members.push(member);
+    }
+
+    res.json({
+      projectId,
+      joinCode,
+      memberId,
+      inviteLink: `http://localhost:4000/?project=${projectId}`
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const projectId = maybe;
-  finalize(projectId);
 });
 
 /* ================= 링크 참가 ================= */
@@ -61,11 +73,9 @@ router.post("/project/:projectId/join/link", (req, res) => {
     return res.status(404).json({ error: "project not found" });
   }
 
-  // isProjectFull uses members array; if using mysql store, ensure store init was run.
-  if (typeof storeInit === 'function' && storeInit.__initialized !== true) {
-    // best-effort init (store.init may be async)
+  if (typeof storeInit === "function" && storeInit.__initialized !== true) {
     const maybeInit = storeInit();
-    if (maybeInit && typeof maybeInit.then === 'function') maybeInit.catch(() => {});
+    if (maybeInit && typeof maybeInit.then === "function") maybeInit.catch(() => {});
     storeInit.__initialized = true;
   }
 
@@ -76,21 +86,20 @@ router.post("/project/:projectId/join/link", (req, res) => {
   const maybeMemberId = getNextMemberId();
 
   const finalizeJoin = (memberId) => {
-    const member = {
-      memberId,
-      projectId,
-      nickname
-    };
-    if (typeof store.createMember === 'function') {
-      store.createMember(member).then(() => res.json(member)).catch(err => res.status(500).json({ error: err.message }));
+    const member = { memberId, projectId, nickname };
+    if (typeof store.createMember === "function") {
+      store.createMember(member)
+        .then(() => res.json(member))
+        .catch(err => res.status(500).json({ error: err.message }));
       return;
     }
     members.push(member);
     res.json(member);
   };
 
-  if (maybeMemberId && typeof maybeMemberId.then === 'function') {
-    maybeMemberId.then(id => finalizeJoin(id)).catch(err => res.status(500).json({ error: err.message }));
+  if (maybeMemberId && typeof maybeMemberId.then === "function") {
+    maybeMemberId.then(id => finalizeJoin(id))
+                 .catch(err => res.status(500).json({ error: err.message }));
     return;
   }
   finalizeJoin(maybeMemberId);
@@ -111,21 +120,20 @@ router.post("/project/join/code", (req, res) => {
 
   const maybeMemberId = getNextMemberId();
   const finalizeJoin = (memberId) => {
-    const member = {
-      memberId,
-      projectId: project.projectId,
-      nickname
-    };
-    if (typeof store.createMember === 'function') {
-      store.createMember(member).then(() => res.json(member)).catch(err => res.status(500).json({ error: err.message }));
+    const member = { memberId, projectId: project.projectId, nickname };
+    if (typeof store.createMember === "function") {
+      store.createMember(member)
+        .then(() => res.json(member))
+        .catch(err => res.status(500).json({ error: err.message }));
       return;
     }
     members.push(member);
     res.json(member);
   };
 
-  if (maybeMemberId && typeof maybeMemberId.then === 'function') {
-    maybeMemberId.then(id => finalizeJoin(id)).catch(err => res.status(500).json({ error: err.message }));
+  if (maybeMemberId && typeof maybeMemberId.then === "function") {
+    maybeMemberId.then(id => finalizeJoin(id))
+                 .catch(err => res.status(500).json({ error: err.message }));
     return;
   }
   finalizeJoin(maybeMemberId);
@@ -137,26 +145,20 @@ router.get("/project/:projectId/timetable", (req, res) => {
   res.json(timetables.filter(t => t.projectId === projectId));
 });
 
-/* ================= 빈 시간표 조회 (추가 기능) ================= */
+/* ================= 빈 시간표 조회 ================= */
 router.get("/project/:projectId/empty-slots", (req, res) => {
   const projectId = Number(req.params.projectId);
 
-  // ✅ 프론트 / socket 기준과 통일
-  const DAYS = [0, 1, 2, 3, 4];          // 월~금
-  const SLOTS = Array.from({ length: 26 }, (_, i) => i); // 09:00~21:30
+  const DAYS = [0, 1, 2, 3, 4];
+  const SLOTS = Array.from({ length: 26 }, (_, i) => i);
 
   const result = [];
 
   for (const day of DAYS) {
     for (const slot of SLOTS) {
       const cell = timetables.find(
-        t =>
-          t.projectId === projectId &&
-          t.day === day &&
-          t.slot === slot
+        t => t.projectId === projectId && t.day === day && t.slot === slot
       );
-
-      // ✅ 아무도 선택 안 한 슬롯만
       if (!cell || cell.members.length === 0) {
         result.push({ day, slot });
       }

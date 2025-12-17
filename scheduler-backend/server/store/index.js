@@ -1,5 +1,6 @@
 // store/index.js
 // Chooses between memoryStore and mysqlStore depending on process.env.DB
+console.log("📦 DB MODE =", process.env.DB);
 
 const useDb = process.env.DB === 'mysql';
 let store;

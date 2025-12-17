@@ -15,7 +15,7 @@ const shareCode  = document.getElementById("shareCode");
 const shareLink  = document.getElementById("shareLink");
 
 // ----------------
-// 입장 (기존 유지 + nickname 전역 저장)
+// 입장 (기존 유지)
 // ----------------
 function enter(){
   const nick = nicknameInput.value.trim();
@@ -23,16 +23,18 @@ function enter(){
     alert("아이디 입력");
     return;
   }
-  nickname = nick; // ✅ state.js 전역 변수에 저장
+  nickname = nick;
 
   const pid = new URLSearchParams(location.search).get("project");
 
   if(pid){
-    apiJoinByLink(pid, nickname).then(d => {
-      projectId = d.projectId;
-      memberId  = d.memberId;
-      showTable();
-    }).catch(e => alert(e.message));
+    apiJoinByLink(pid, nickname)
+      .then(d => {
+        projectId = d.projectId;
+        memberId  = d.memberId;
+        showTable();
+      })
+      .catch(e => alert(e.message));
   } else {
     mainScreen.classList.add("hidden");
     menuScreen.classList.remove("hidden");
@@ -41,23 +43,22 @@ function enter(){
 }
 
 // ----------------
-// 프로젝트 생성 (기존 유지)
+// 프로젝트 생성 (🔥 수정됨)
 // ----------------
 function createProject(){
-  apiCreateProject().then(d => {
+  apiCreateProject({ nickname }).then(d => {
+    console.log("CREATE PROJECT RESPONSE:", d); // 🔍 확인용
+
     projectId  = d.projectId;
     joinCode   = d.joinCode;
     inviteLink = d.inviteLink;
+    memberId   = d.memberId; // 🔥 서버에서 자동 참가된 memberId
 
-    // ✅ 공유 모달 값 세팅 유지
+    // 공유 모달 값 세팅 (기존 유지)
     shareCode.value = joinCode;
     shareLink.value = inviteLink;
 
-    return apiJoinByLink(projectId, nicknameInput.value.trim());
-  }).then(m => {
-    memberId = m.memberId;
-    nickname = nicknameInput.value.trim(); // 안전하게 한번 더
-    showTable();
+    showTable(); // 🔥 바로 시간표로 이동
   }).catch(e => alert(e.message));
 }
 
@@ -83,7 +84,7 @@ function joinByCode(){
 }
 
 // ----------------
-// 시간표 화면 표시 (기존 유지 + ✅ join-project payload 수정)
+// 시간표 화면 표시 (기존 유지)
 // ----------------
 function showTable(){
   mainScreen.classList.add("hidden");
@@ -93,7 +94,6 @@ function showTable(){
   drawTable();
   loadTimetable();
 
-  // ✅ 서버쪽 disconnect 자동제거가 memberId를 알아야 해서 payload로 보냄
   socket.emit("join-project", { projectId, memberId });
 }
 
@@ -111,12 +111,12 @@ function closeShare(){
 function copyShare(){
   navigator.clipboard.writeText(shareLink.value);
 }
+
 function showAllTimetable(){
   if(showingEmpty){
     showingEmpty = false;
-    loadTimetable();        // 원래 시간표로 복귀
+    loadTimetable();
   } else {
-    showEmptyTimetable();   // 빈 시간표 표시
+    showEmptyTimetable();
   }
 }
-

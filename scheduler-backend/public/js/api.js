@@ -1,8 +1,10 @@
 // 서버 API 통신 전용 (기존 유지)
 
-function apiCreateProject() {
+function apiCreateProject(data) {
   return fetch("/project/create", {
-    method: "POST"
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
   }).then(r => r.json());
 }
 
